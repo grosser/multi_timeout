@@ -68,6 +68,19 @@ describe MultiTimeout do
         File.unlink(file) if File.exist?(file)
       end
     end
+
+    it "kills nested processes" do
+      begin
+        file = 'xxx'
+        capture_stdout {
+          call(["-2", "1", "env", "XXX=1", "sh", "-c", "(sleep 1.5 && touch #{file})"])
+        }
+        sleep 1
+        File.exist?(file).should == false
+      ensure
+        File.unlink(file) if File.exist?(file)
+      end
+    end
   end
 
   describe "#multi" do

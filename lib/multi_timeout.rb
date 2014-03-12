@@ -12,7 +12,8 @@ module MultiTimeout
         options = parse_options(argv)
         command = options[:command]
 
-        pid = fork { exec command }
+        pid = Process.spawn command, :pgroup => true
+        gid = Process.getpgid(pid)
         Thread.new do
           now = 0
           loop do
@@ -22,7 +23,7 @@ module MultiTimeout
               if now >= t
                 options[:timeouts].delete([signal, t])
                 puts "Killing '#{truncate(command, 30)}' with signal #{signal} after #{now} seconds"
-                Process.kill(signal, pid)
+                Process.kill(signal, -gid)
               end
             end
             now += TICK
