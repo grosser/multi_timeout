@@ -22,6 +22,7 @@ module MultiTimeout
               if now >= t
                 options[:timeouts].delete([signal, t])
                 puts "Killing '#{command}' with signal #{signal} after #{now} seconds"
+                STDOUT.flush # wait instantly terminates and sometimes hides puts
                 Process.kill(signal, pid)
               end
             end
