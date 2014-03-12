@@ -19,7 +19,8 @@ module MultiTimeout
 
             options[:timeouts].each do |signal, t|
               if now >= t
-                puts "Killing #{command} with signal #{signal} after #{now} seconds"
+                options[:timeouts].delete([signal, t])
+                puts "Killing '#{command}' with signal #{signal} after #{now} seconds"
                 Process.kill(signal, pid)
               end
             end
@@ -43,7 +44,7 @@ module MultiTimeout
       def parse_options(argv)
         options = {:timeouts => []}
         options[:timeouts], argv = consume_signals(argv)
-
+        options[:command], argv = consume_command(argv)
 
         OptionParser.new do |opts|
           opts.banner = <<-BANNER.gsub(/^ {10}/, "")
@@ -60,9 +61,17 @@ module MultiTimeout
         end.parse!(argv)
 
         raise "No timeouts given" if options[:timeouts].empty?
-        options[:command] = Shellwords.shelljoin(argv)
 
         options
+      end
+
+      def consume_command(argv)
+        argv = argv.dup
+        options = []
+        while argv.first =~ /^-/
+          options << argv.shift
+        end
+        return Shellwords.shelljoin(argv), options
       end
 
       def consume_signals(argv)

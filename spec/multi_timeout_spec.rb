@@ -14,6 +14,14 @@ describe MultiTimeout do
       MultiTimeout::CLI.run(*argv)
     end
 
+    def capture_stdout
+      $stdout = StringIO.new
+      yield
+      $stdout.string
+    ensure
+      $stdout = STDOUT
+    end
+
     it "times out first signal first" do
       MultiTimeout::CLI.should_receive(:puts)
       status = nil
@@ -37,6 +45,19 @@ describe MultiTimeout do
         status = call(["-2", "1", "-9", "2", "exit", "123"])
       }.should be_within(0.1).of(0)
       status.should == 123
+    end
+
+    it "kills hard if soft-kill fails" do
+      begin
+        command = "ruby -e Signal.trap\\(2\\)\\{\\ File.write\\(\\'xxx\\',\\ \\'2\\'\\)\\ \\}\\;\\ sleep\\ 4"
+        file = "xxx"
+        capture_stdout {
+          call(["-2", "1", "-9", "2", "ruby", "-e", "Signal.trap(2){ File.write('#{file}', '2') }; sleep 4"]).should == 1
+        }.should == "Killing '#{command}' with signal 2 after 1 seconds\nKilling '#{command}' with signal 9 after 2 seconds\n"
+        File.read(file).should == "2"
+      ensure
+        File.unlink(file) if File.exist?(file)
+      end
     end
   end
 
@@ -113,6 +134,49 @@ describe MultiTimeout do
 
     it "is not dead when alive" do
       call(Process.pid).should == false
+    end
+  end
+
+  describe "#consume_command" do
+    def call(*argv)
+      MultiTimeout::CLI.send(:consume_command, *argv)
+    end
+
+    it "leaves only command" do
+      call(["xxx", "-v"]).should == ["xxx -v", []]
+    end
+
+    it "splits command and options" do
+      call(["-x", "-y", "xxx", "-v"]).should == ["xxx -v", ["-x", "-y"]]
+    end
+  end
+
+  describe "CLI" do
+    def timeout(command, options={})
+      sh("#{Bundler.root}/bin/multi-timeout #{command}", options)
+    end
+
+    def sh(command, options={})
+      result = Bundler.with_clean_env { `#{command} #{"2>&1" unless options[:keep_output]}` }
+      raise "#{options[:fail] ? "SUCCESS" : "FAIL"} #{command}\n#{result}" if $?.success? == !!options[:fail]
+      result
+    end
+
+
+    it "can print version" do
+      timeout("-v").should == "#{MultiTimeout::VERSION}\n"
+    end
+
+    it "can print help" do
+      timeout("-h").should include "Usage"
+    end
+
+    it "execute successfully" do
+      timeout("-2 1 sleep 0").should == ""
+    end
+
+    it "fails" do
+      timeout("-2 1 sleep 2", :fail => true).should == "Killing 'sleep 2' with signal 2 after 1 seconds\n"
     end
   end
 end
