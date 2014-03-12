@@ -12,7 +12,7 @@ module MultiTimeout
         options = parse_options(argv)
         command = options[:command]
 
-        pid = Process.spawn(command)
+        pid = fork { exec command }
         Thread.new do
           now = 0
           loop do

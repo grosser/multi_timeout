@@ -58,10 +58,10 @@ describe MultiTimeout do
 
     it "kills hard if soft-kill fails" do
       begin
-        command = "ruby -e Signal.trap\\(2\\)\\{\\ File.write\\(\\'xxx\\',\\ \\'2\\'\\)\\ \\}\\;\\ sleep\\ 4"
+        command = "ruby -e Signal.trap\\(2\\)\\{\\ File.open\\(\\'xxx\\',\\ \\'w\\'\\)\\{\\|f\\|f.write\\(\\'2\\'\\)\\}\\ \\}\\;\\ sleep\\ 4"
         file = "xxx"
         capture_stdout {
-          call(["-2", "1", "-9", "2", "ruby", "-e", "Signal.trap(2){ File.write('#{file}', '2') }; sleep 4"]).should == 1
+          call(["-2", "1", "-9", "2", "ruby", "-e", "Signal.trap(2){ File.open('#{file}', 'w'){|f|f.write('2')} }; sleep 4"]).should == 1
         }.should == "Killing '#{command}' with signal 2 after 1 seconds\nKilling '#{command}' with signal 9 after 2 seconds\n"
         File.read(file).should == "2"
       ensure
