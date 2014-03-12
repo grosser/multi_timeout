@@ -31,6 +31,15 @@ describe MultiTimeout do
       status.should == 1
     end
 
+    it "can use string exit status" do
+      status = nil
+      MultiTimeout::CLI.should_receive(:puts).with("Killing 'sleep 2' with signal INT after 1 seconds")
+      time {
+        status = call(["-INT", "1", "sleep", "2"])
+      }.should be_within(0.1).of(1)
+      status.should == 1
+    end
+
     it "exists with sub process ok exit status" do
       status = nil
       time {
@@ -85,6 +94,10 @@ describe MultiTimeout do
     it "fails on unknown" do
       expect { call("10x") }.to raise_error
     end
+
+    it "fails on invalid" do
+      expect { call("m123") }.to raise_error
+    end
   end
 
   describe "#consume_signals" do
@@ -107,6 +120,14 @@ describe MultiTimeout do
     it "finds multiple signals" do
       call(["10m", "-v", "-9", "1m", "-2", "22s", "--help"]).should == [[[9, 60], [2, 22]], ["10m", "-v", "--help"]]
     end
+
+    it "finds string signals" do
+      call(["10m", "-v", "-HUP", "1m", "--help"]).should == [[["HUP", 60]], ["10m", "-v", "--help"]]
+    end
+
+    it "finds string number signals" do
+      call(["10m", "-v", "-USR2", "1m", "--help"]).should == [[["USR2", 60]], ["10m", "-v", "--help"]]
+    end
   end
 
   describe "#parse_options" do
@@ -120,6 +141,10 @@ describe MultiTimeout do
 
     it "fails on missing timeouts" do
       expect { call(["sleep", "100"]) }.to raise_error
+    end
+
+    it "fails on invalid option" do
+      expect { call(["-9", "1", "-f", "1", "sleep", "1"]) }.to raise_error
     end
   end
 

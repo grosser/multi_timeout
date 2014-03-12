@@ -5,6 +5,7 @@ require "optparse"
 module MultiTimeout
   module CLI
     TICK = 1
+    VALID_SIGNAL = /^(-(\d+|[A-Z\d]+))$/
 
     class << self
       def run(argv)
@@ -78,12 +79,13 @@ module MultiTimeout
         timeouts = []
         signal = nil
         argv = argv.map do |item|
-          if !signal && item =~ /^(-\d+)$/
+          if !signal && item =~ VALID_SIGNAL
             signal = $1
             next
-          elsif signal && item =~ /^(\d+[smh]?)$/
-            time = $1
-            timeouts << [signal.sub("-", "").to_i, time.to_i * multi(time)]
+          elsif signal
+            signal = signal.sub("-", "")
+            signal = signal.to_i if signal =~ /^\d+$/
+            timeouts << [signal, item.to_i * multi(item)]
             signal = nil
             next
           else
@@ -96,10 +98,10 @@ module MultiTimeout
 
       def multi(t)
         case t
-        when /s/ then 1
-        when /m/ then 60
-        when /h/ then 60 * 60
-        when /^\d+$/ then 1
+        when /^\d+s$/ then 1
+        when /^\d+m$/ then 60
+        when /^\d+h$/ then 60 * 60
+        when /^\d+$/  then 1
         else
           raise "Unknown format for time #{t}"
         end
