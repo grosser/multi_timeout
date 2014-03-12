@@ -42,7 +42,7 @@ describe MultiTimeout do
     it "exists with sub process bad exit status" do
       status = nil
       time {
-        status = call(["-2", "1", "-9", "2", "exit", "123"])
+        status = call(["-2", "1", "-9", "2", "sh", "-c", "exit 123"])
       }.should be_within(0.1).of(0)
       status.should == 123
     end
