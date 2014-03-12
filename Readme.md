@@ -12,8 +12,8 @@ Usage
 
 Kill command via interrupt (2) after 8 seconds and via KILL (9) after 10 seconds if that does not work
 ```Ruby
-multi-timeout -KILL 10s -INT 8s sleep 11
-multi-timeout -9 10s -2 8s sleep 11
+multi-timeout -INT 8s -KILL 10s sleep 11
+multi-timeout -2 8s -9 10s sleep 11
 ```
 
 Author
