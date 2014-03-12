@@ -10,6 +10,7 @@ Gem::Specification.new name, MultiTimeout::VERSION do |s|
   s.files = `git ls-files lib/ bin/ MIT-LICENSE`.split("\n")
   s.license = "MIT"
   s.executables = ["multi-timeout"]
+  s.required_ruby_version = '>= 1.9.3' # Process.spawn is 1.9+
   cert = File.expand_path("~/.ssh/gem-private-key-grosser.pem")
   if File.exist?(cert)
     s.signing_key = cert
