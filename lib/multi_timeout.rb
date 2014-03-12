@@ -21,8 +21,7 @@ module MultiTimeout
             options[:timeouts].each do |signal, t|
               if now >= t
                 options[:timeouts].delete([signal, t])
-                puts "Killing '#{command}' with signal #{signal} after #{now} seconds"
-                STDOUT.flush # wait instantly terminates and sometimes hides puts
+                puts "Killing '#{truncate(command, 30)}' with signal #{signal} after #{now} seconds"
                 Process.kill(signal, pid)
               end
             end
@@ -35,6 +34,14 @@ module MultiTimeout
       end
 
       private
+
+      def truncate(string, count)
+        if string.size > count
+          string.slice(0, count-3) + "..."
+        else
+          string
+        end
+      end
 
       def dead?(pid)
         Process.getpgid(pid)

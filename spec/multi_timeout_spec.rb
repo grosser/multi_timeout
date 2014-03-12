@@ -58,7 +58,7 @@ describe MultiTimeout do
 
     it "kills hard if soft-kill fails" do
       begin
-        command = "ruby -e Signal.trap\\(2\\)\\{\\ File.open\\(\\'xxx\\',\\ \\'w\\'\\)\\{\\|f\\|f.write\\(\\'2\\'\\)\\}\\ \\}\\;\\ sleep\\ 4"
+        command = "ruby -e Signal.trap\\(2\\)\\{\\..."
         file = "xxx"
         capture_stdout {
           call(["-2", "1", "-9", "2", "ruby", "-e", "Signal.trap(2){ File.open('#{file}', 'w'){|f|f.write('2')} }; sleep 4"]).should == 1
@@ -67,6 +67,24 @@ describe MultiTimeout do
       ensure
         File.unlink(file) if File.exist?(file)
       end
+    end
+  end
+
+  describe "#multi" do
+    def call(*argv)
+      MultiTimeout::CLI.send(:truncate, *argv)
+    end
+
+    it "does not truncate correct size" do
+      call("abcdef", 6).should == "abcdef"
+    end
+
+    it "does not truncate short size" do
+      call("abc", 6).should == "abc"
+    end
+
+    it "does not truncate long size" do
+      call("abcdefgh", 6).should == "abc..."
     end
   end
 
