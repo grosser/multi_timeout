@@ -7,6 +7,12 @@ Install
 gem install multi_timeout
 ```
 
+or as standalone binary (needs any ruby)
+
+```Bash
+curl https://rubinjam.herokuapp.com/pack/multi_timeout > multi-timeout && chmod +x multi-timeout
+```
+
 Usage
 =====
 
