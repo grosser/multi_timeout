@@ -58,7 +58,7 @@ describe MultiTimeout do
 
     it "kills hard if soft-kill fails" do
       begin
-        command = "ruby -e Signal.trap\\(2\\)\\{\\..."
+        command = "ruby -e Signal.trap(2){ Fil..."
         file = "xxx"
         capture_stdout {
           call(["-2", "1", "-9", "2", "ruby", "-e", "Signal.trap(2){ File.open('#{file}', 'w'){|f|f.write('2')} }; sleep 4"]).should == 1
@@ -167,7 +167,7 @@ describe MultiTimeout do
     end
 
     it "parses normal" do
-      call(["-9", "10m", "sleep", "100"]).should == ["sleep 100", {timeouts: {9 => 600}}]
+      call(["-9", "10m", "sleep", "100"]).should == [["sleep", "100"], {timeouts: {9 => 600}}]
     end
 
     it "fails on missing timeouts" do
@@ -199,11 +199,11 @@ describe MultiTimeout do
     end
 
     it "leaves only command" do
-      call(["xxx", "-v"]).should == ["xxx -v", []]
+      call(["xxx", "-v"]).should == [["xxx", "-v"], []]
     end
 
     it "splits command and options" do
-      call(["-x", "-y", "xxx", "-v"]).should == ["xxx -v", ["-x", "-y"]]
+      call(["-x", "-y", "xxx", "-v"]).should == [["xxx", "-v"], ["-x", "-y"]]
     end
   end
 

@@ -1,5 +1,4 @@
 require "multi_timeout/version"
-require "shellwords"
 require "optparse"
 
 module MultiTimeout
@@ -9,7 +8,7 @@ module MultiTimeout
   class << self
     def run(command, timeouts: nil)
       # spawn process in a separate group so we can take it down completely and not leave any children
-      pid = Process.spawn command, pgroup: true
+      pid = Process.spawn({}, *command, pgroup: true)
       gid = Process.getpgid(pid)
 
       Thread.new do
@@ -20,7 +19,7 @@ module MultiTimeout
           timeouts.each do |signal, max|
             if elapsed >= max
               timeouts.delete(signal)
-              puts "Killing '#{truncate(command, 30)}' with signal #{signal} after #{elapsed} seconds"
+              puts "Killing '#{truncate(Array(command).join(" "), 30)}' with signal #{signal} after #{elapsed} seconds"
               Process.kill(signal, -gid)
             end
           end
@@ -86,7 +85,7 @@ module MultiTimeout
         while argv.first =~ /^-/
           options << argv.shift
         end
-        return Shellwords.shelljoin(argv), options # FIXME: avoid this and use arrays
+        return argv, options
       end
 
       def consume_signals(argv)

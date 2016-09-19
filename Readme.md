@@ -26,6 +26,7 @@ Or call from ruby:
 
 ```
 MultiTimeout.run("sleep 5", timeouts: {INT: 10, KILL: 20}) # term after 10s and kill after 20s
+MultiTimeout.run(["sleep", "5"], ...) # alertnate call with safer arrays
 ```
 
 Unix timeout
