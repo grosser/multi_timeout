@@ -22,6 +22,12 @@ multi-timeout -INT 8s -KILL 10s sleep 11
 multi-timeout -2 8s -9 10s sleep 11
 ```
 
+Or call from ruby:
+
+```
+MultiTimeout.run("sleep 5", timeouts: {INT: 10, KILL: 20}) # term after 10s and kill after 20s
+```
+
 Unix timeout
 ===========
 nesting timeout does not work:

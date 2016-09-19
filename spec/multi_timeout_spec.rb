@@ -23,7 +23,7 @@ describe MultiTimeout do
     end
 
     it "times out first signal first" do
-      MultiTimeout::CLI.should_receive(:puts)
+      MultiTimeout.should_receive(:puts)
       status = nil
       time {
         status = call(["-2", "1", "-9", "2", "sleep", "2"])
@@ -33,7 +33,7 @@ describe MultiTimeout do
 
     it "can use string exit status" do
       status = nil
-      MultiTimeout::CLI.should_receive(:puts).with("Killing 'sleep 2' with signal INT after 1 seconds")
+      MultiTimeout.should_receive(:puts).with("Killing 'sleep 2' with signal INT after 1 seconds")
       time {
         status = call(["-INT", "1", "sleep", "2"])
       }.should be_within(0.1).of(1)
@@ -83,9 +83,9 @@ describe MultiTimeout do
     end
   end
 
-  describe "#multi" do
+  describe "#truncate" do
     def call(*argv)
-      MultiTimeout::CLI.send(:truncate, *argv)
+      MultiTimeout.send(:truncate, *argv)
     end
 
     it "does not truncate correct size" do
@@ -137,27 +137,27 @@ describe MultiTimeout do
     end
 
     it "finds nothing" do
-      call([]).should == [[], []]
+      call([]).should == [{}, []]
     end
 
     it "does not find unrelated" do
-      call(["10m", "-v", "--help"]).should == [[], ["10m", "-v", "--help"]]
+      call(["10m", "-v", "--help"]).should == [{}, ["10m", "-v", "--help"]]
     end
 
     it "finds 1 signal" do
-      call(["10m", "-v", "-9", "1m", "--help"]).should == [[[9, 60]], ["10m", "-v", "--help"]]
+      call(["10m", "-v", "-9", "1m", "--help"]).should == [{9 => 60}, ["10m", "-v", "--help"]]
     end
 
     it "finds multiple signals" do
-      call(["10m", "-v", "-9", "1m", "-2", "22s", "--help"]).should == [[[9, 60], [2, 22]], ["10m", "-v", "--help"]]
+      call(["10m", "-v", "-9", "1m", "-2", "22s", "--help"]).should == [{9 => 60, 2 => 22}, ["10m", "-v", "--help"]]
     end
 
     it "finds string signals" do
-      call(["10m", "-v", "-HUP", "1m", "--help"]).should == [[["HUP", 60]], ["10m", "-v", "--help"]]
+      call(["10m", "-v", "-HUP", "1m", "--help"]).should == [{"HUP" => 60}, ["10m", "-v", "--help"]]
     end
 
     it "finds string number signals" do
-      call(["10m", "-v", "-USR2", "1m", "--help"]).should == [[["USR2", 60]], ["10m", "-v", "--help"]]
+      call(["10m", "-v", "-USR2", "1m", "--help"]).should == [{"USR2" => 60}, ["10m", "-v", "--help"]]
     end
   end
 
@@ -167,7 +167,7 @@ describe MultiTimeout do
     end
 
     it "parses normal" do
-      call(["-9", "10m", "sleep", "100"]).should == {:timeouts => [[9, 600]], :command => "sleep 100"}
+      call(["-9", "10m", "sleep", "100"]).should == ["sleep 100", {timeouts: {9 => 600}}]
     end
 
     it "fails on missing timeouts" do
@@ -181,7 +181,7 @@ describe MultiTimeout do
 
   describe "#dead?" do
     def call(*argv)
-      MultiTimeout::CLI.send(:dead?, *argv)
+      MultiTimeout.send(:dead?, *argv)
     end
 
     it "is dead when dead" do
@@ -218,7 +218,6 @@ describe MultiTimeout do
       result
     end
 
-
     it "can print version" do
       timeout("-v").should == "#{MultiTimeout::VERSION}\n"
     end
@@ -232,7 +231,7 @@ describe MultiTimeout do
     end
 
     it "fails" do
-      timeout("-2 1 sleep 2", :fail => true).should == "Killing 'sleep 2' with signal 2 after 1 seconds\n"
+      timeout("-2 1 sleep 2", fail: true).should == "Killing 'sleep 2' with signal 2 after 1 seconds\n"
     end
   end
 end
