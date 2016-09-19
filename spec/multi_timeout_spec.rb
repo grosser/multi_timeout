@@ -101,25 +101,25 @@ describe MultiTimeout do
     end
   end
 
-  describe "#multi" do
+  describe "#human_value_to_seconds" do
     def call(*argv)
-      MultiTimeout::CLI.send(:multi, *argv)
+      MultiTimeout::CLI.send(:human_value_to_seconds, *argv)
     end
 
     it "finds seconds" do
-      call("51s").should == 1
+      call("51s").should == 51
     end
 
     it "finds nothing" do
-      call("51").should == 1
+      call("51").should == 51
     end
 
     it "finds minutes" do
-      call("10m").should == 60
+      call("10m").should == 600
     end
 
     it "finds hours" do
-      call("10h").should == 3600
+      call("10h").should == 36000
     end
 
     it "fails on unknown" do

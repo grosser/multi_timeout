@@ -31,7 +31,7 @@ module MultiTimeout
           end
         end
 
-        Process.wait2.last.exitstatus || 1
+        Process.wait2(pid).last.exitstatus || 1
       end
 
       private
@@ -94,7 +94,7 @@ module MultiTimeout
           elsif signal
             signal = signal.sub("-", "")
             signal = signal.to_i if signal =~ /^\d+$/
-            timeouts << [signal, item.to_i * multi(item)]
+            timeouts << [signal, human_value_to_seconds(item)]
             signal = nil
             next
           else
@@ -105,15 +105,16 @@ module MultiTimeout
         return timeouts, argv
       end
 
-      def multi(t)
-        case t
-        when /^\d+s$/ then 1
-        when /^\d+m$/ then 60
-        when /^\d+h$/ then 60 * 60
-        when /^\d+$/  then 1
-        else
-          raise "Unknown format for time #{t}"
-        end
+      def human_value_to_seconds(t)
+        unit =
+          case t
+          when /^\d+s$/ then 1
+          when /^\d+m$/ then 60
+          when /^\d+h$/ then 60 * 60
+          when /^\d+$/  then 1
+          else raise "Unknown format for time #{t}"
+          end
+        t.to_i * unit
       end
     end
   end
