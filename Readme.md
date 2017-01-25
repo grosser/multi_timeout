@@ -1,3 +1,5 @@
+DEPRECATED use nested timeout instead `timeout -t 20 -s KILL timeout -t 15 -s INT something-slow` .. eats 5m less ram
+
 Use multiple timeouts to soft and then hard kill a command
 
 Install
